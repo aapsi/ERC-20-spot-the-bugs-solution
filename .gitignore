@@ -8,8 +8,6 @@ cache
 
 .vscode
 
-lcov.info
-
 Icov.info
 
 coverage.json
