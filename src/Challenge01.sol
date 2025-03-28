@@ -10,9 +10,12 @@
 pragma solidity ^0.8.20;
 
 contract Challlenge01 {
-
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 
     string private _name;
     string private _symbol;
@@ -25,7 +28,11 @@ contract Challlenge01 {
     error InsufficientBalance(address sender, uint256 balance, uint256 needed);
     error InvalidSender(address sender);
     error InvalidReceiver(address receiver);
-    error InsufficientAllowance(address spender, uint256 allowance, uint256 needed);
+    error InsufficientAllowance(
+        address spender,
+        uint256 allowance,
+        uint256 needed
+    );
     error InvalidApprover(address approver);
     error InvalidSpender(address spender);
 
@@ -60,17 +67,27 @@ contract Challlenge01 {
         return true;
     }
 
-    function allowance(address owner, address spender) public view virtual returns (uint256) {
+    function allowance(
+        address owner,
+        address spender
+    ) public view virtual returns (uint256) {
         return _allowances[owner][spender];
     }
 
-    function approve(address spender, uint256 value) public virtual returns (bool) {
+    function approve(
+        address spender,
+        uint256 value
+    ) public virtual returns (bool) {
         address owner = msg.sender;
         _approve(owner, spender, value);
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 value) public virtual returns (bool) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) public virtual returns (bool) {
         address spender = msg.sender;
         _spendAllowance(from, spender, value);
         _transfer(from, to, value);
@@ -82,9 +99,12 @@ contract Challlenge01 {
         if (to == address(0)) revert InvalidReceiver(to);
 
         uint256 fromBalance = _balances[from];
-        if (fromBalance < value) revert InsufficientBalance(from, fromBalance, value);
-
+        if (fromBalance < value)
+            revert InsufficientBalance(from, fromBalance, value);
+        // FIX START
+        _balances[from] -= value;
         _balances[to] += value;
+        // FIX END
         emit Transfer(from, to, value);
     }
 
@@ -96,10 +116,19 @@ contract Challlenge01 {
         emit Approval(owner, spender, value);
     }
 
-    function _spendAllowance(address owner, address spender, uint256 value) internal {
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 value
+    ) internal {
+        // FIX START
+        if (owner == address(0)) revert InvalidSender(owner);
+        if (spender == address(0)) revert InvalidSpender(spender);
+        // FIX END
         uint256 currentAllowance = allowance(owner, spender);
         if (currentAllowance != type(uint256).max) {
-            if (currentAllowance < value) revert InsufficientAllowance(spender, currentAllowance, value);
+            if (currentAllowance < value)
+                revert InsufficientAllowance(spender, currentAllowance, value);
             unchecked {
                 _approve(owner, spender, currentAllowance - value);
             }
@@ -117,7 +146,8 @@ contract Challlenge01 {
         if (account == address(0)) revert InvalidSender(account);
 
         uint256 accountBalance = _balances[account];
-        if (accountBalance < value) revert InsufficientBalance(account, accountBalance, value);
+        if (accountBalance < value)
+            revert InsufficientBalance(account, accountBalance, value);
 
         _balances[account] = accountBalance - value;
         _totalSupply -= value;

@@ -2,26 +2,27 @@
 
 /// ██████╗ ██╗  ██╗ █████╗ ██╗     ██╗     ███████╗███╗   ██╗ ██████╗ ███████╗
 /// ██╔════╝██║  ██║██╔══██╗██║     ██║     ██╔════╝████╗  ██║██╔════╝ ██╔════╝
-/// ██║     ███████║███████║██║     ██║     █████╗  ██╔██╗ ██║██║  ███╗█████╗  
-/// ██║     ██╔══██║██╔══██║██║     ██║     ██╔══╝  ██║╚██╗██║██║   ██║██╔══╝  
+/// ██║     ███████║███████║██║     ██║     █████╗  ██╔██╗ ██║██║  ███╗█████╗
+/// ██║     ██╔══██║██╔══██║██║     ██║     ██╔══╝  ██║╚██╗██║██║   ██║██╔══╝
 /// ╚██████╗██║  ██║██║  ██║███████╗███████╗███████╗██║ ╚████║╚██████╔╝███████╗
 /// ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
-                                                                           
-/// ██████╗ ██████╗                                                           
-/// ██╔═████╗╚════██╗                                                          
-/// ██║██╔██║ █████╔╝                                                          
-/// ████╔╝██║ ╚═══██╗                                                          
-/// ╚██████╔╝██████╔╝                                                          
-/// ╚═════╝ ╚═════╝                                                           
-                                                                           
 
+/// ██████╗ ██████╗
+/// ██╔═████╗╚════██╗
+/// ██║██╔██║ █████╔╝
+/// ████╔╝██║ ╚═══██╗
+/// ╚██████╔╝██████╔╝
+/// ╚═════╝ ╚═════╝
 
 pragma solidity >=0.8.0;
 
 contract Challenge03 {
-
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
 
     string public name;
     string public symbol;
@@ -39,7 +40,7 @@ contract Challenge03 {
     function burn(address account, uint256 value) public {
         require(account != address(0), "Invalid burner");
         uint256 accountBalance = _balances[account];
-        require(accountBalance >= value, "Insufficient balance");
+        require(accountBalance > value, "Insufficient balance");
 
         _balances[account] = accountBalance - value;
         _totalSupply -= value;
@@ -56,13 +57,20 @@ contract Challenge03 {
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 amount) public returns (bool) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public returns (bool) {
         _spendAllowance(from, msg.sender, amount);
         _transfer(from, to, amount);
         return true;
     }
 
-    function allowance(address owner, address spender) public view returns (uint256) {
+    function allowance(
+        address owner,
+        address spender
+    ) public view returns (uint256) {
         return _allowances[owner][spender];
     }
 
@@ -81,10 +89,17 @@ contract Challenge03 {
         emit Approval(owner, spender, amount);
     }
 
-     function _spendAllowance(address tokenOwner, address spender, uint256 value) internal {
+    function _spendAllowance(
+        address tokenOwner,
+        address spender,
+        uint256 value
+    ) internal {
         uint256 currentAllowance = allowance(tokenOwner, spender);
         if (currentAllowance != type(uint256).max) {
-            require(currentAllowance >= value, "Challenge3: insufficient allowance");
+            require(
+                currentAllowance >= value,
+                "Challenge3: insufficient allowance"
+            );
             _allowances[tokenOwner][spender] = currentAllowance - value;
         }
     }

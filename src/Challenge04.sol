@@ -1,29 +1,28 @@
 // SPDX-License-Identifier: CC-BY-NC-SA-4.0
 
-
-
 /// ██████╗ ██╗  ██╗ █████╗ ██╗     ██╗     ███████╗███╗   ██╗ ██████╗ ███████╗
 /// ██╔════╝██║  ██║██╔══██╗██║     ██║     ██╔════╝████╗  ██║██╔════╝ ██╔════╝
-/// ██║     ███████║███████║██║     ██║     █████╗  ██╔██╗ ██║██║  ███╗█████╗  
-/// ██║     ██╔══██║██╔══██║██║     ██║     ██╔══╝  ██║╚██╗██║██║   ██║██╔══╝  
+/// ██║     ███████║███████║██║     ██║     █████╗  ██╔██╗ ██║██║  ███╗█████╗
+/// ██║     ██╔══██║██╔══██║██║     ██║     ██╔══╝  ██║╚██╗██║██║   ██║██╔══╝
 /// ╚██████╗██║  ██║██║  ██║███████╗███████╗███████╗██║ ╚████║╚██████╔╝███████╗
 /// ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝
-                                                                           
-///  ██████╗ ██╗  ██╗                                                          
-/// ██╔═████╗██║  ██║                                                          
-/// ██║██╔██║███████║                                                          
-/// ████╔╝██║╚════██║                                                          
-/// ╚██████╔╝     ██║                                                          
-///  ╚═════╝      ╚═╝                                                          
-                                                                           
 
+///  ██████╗ ██╗  ██╗
+/// ██╔═████╗██║  ██║
+/// ██║██╔██║███████║
+/// ████╔╝██║╚════██║
+/// ╚██████╔╝     ██║
+///  ╚═════╝      ╚═╝
 
 pragma solidity ^0.8.20;
 
 contract Challenge04 {
-
     event Transfer(address indexed from, address indexed to, uint256 value);
-    event Approval(address indexed owner, address indexed spender, uint256 value);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 value
+    );
     event Paused(address account);
     event Unpaused(address account);
 
@@ -37,7 +36,6 @@ contract Challenge04 {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
-
     function totalSupply() public view returns (uint256) {
         return _totalSupply;
     }
@@ -46,7 +44,10 @@ contract Challenge04 {
         return _balances[account];
     }
 
-    function allowance(address tokenOwner, address spender) public view returns (uint256) {
+    function allowance(
+        address tokenOwner,
+        address spender
+    ) public view returns (uint256) {
         return _allowances[tokenOwner][spender];
     }
 
@@ -63,11 +64,13 @@ contract Challenge04 {
     }
 
     function pause() public onlyOwner {
+        require(!paused, "Challenge4: already paused");
         paused = true;
         emit Paused(msg.sender);
     }
 
     function unpause() public onlyOwner {
+        require(paused, "Challenge4: not paused");
         paused = false;
         emit Unpaused(msg.sender);
     }
@@ -83,13 +86,20 @@ contract Challenge04 {
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 value) public returns (bool) {
+    function transferFrom(
+        address from,
+        address to,
+        uint256 value
+    ) public returns (bool) {
+        require(!paused, "Challenge4: transfers paused");
         _spendAllowance(from, msg.sender, value);
         _transfer(from, to, value);
         return true;
     }
 
     function _transfer(address from, address to, uint256 value) internal {
+        require(from != address(0), "Challenge4: transfer from zero address");
+
         require(to != address(0), "Challenge4: transfer to zero address");
 
         uint256 fromBalance = _balances[from];
@@ -100,24 +110,46 @@ contract Challenge04 {
         emit Transfer(from, to, value);
     }
 
-    function _approve(address tokenOwner, address spender, uint256 value) internal {
-        require(tokenOwner != address(0), "Challenge4: approve from zero address");
+    function _approve(
+        address tokenOwner,
+        address spender,
+        uint256 value
+    ) internal {
+        require(
+            tokenOwner != address(0),
+            "Challenge4: approve from zero address"
+        );
         require(spender != address(0), "Challenge4: approve to zero address");
 
         _allowances[tokenOwner][spender] = value;
         emit Approval(tokenOwner, spender, value);
     }
 
-    function _spendAllowance(address tokenOwner, address spender, uint256 value) internal {
+    function _spendAllowance(
+        address tokenOwner,
+        address spender,
+        uint256 value
+    ) internal {
+        require(
+            tokenOwner != address(0),
+            "Challenge4: token owner zero address"
+        );
+
+        require(spender != address(0), "Challenge4: token owner zero address");
+
         uint256 currentAllowance = allowance(tokenOwner, spender);
         if (currentAllowance != type(uint256).max) {
-            require(currentAllowance >= value, "Challenge4: insufficient allowance");
+            require(
+                currentAllowance >= value,
+                "Challenge4: insufficient allowance"
+            );
             _allowances[tokenOwner][spender] = currentAllowance - value;
         }
     }
 
     function _mint(address account, uint256 value) internal {
         require(account != address(0), "Challenge4: mint to zero address");
+        require(!paused, "Challenge4: minting paused");
         _totalSupply += value;
         _balances[account] += value;
         emit Transfer(address(0), account, value);

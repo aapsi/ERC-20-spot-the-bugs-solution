@@ -19,7 +19,22 @@ pragma solidity >=0.8.0;
 contract Challenge02 {
     event Transfer(address indexed from, address indexed to, uint256 amount);
 
-    event Approval(address indexed owner, address indexed spender, uint256 amount);
+    event Approval(
+        address indexed owner,
+        address indexed spender,
+        uint256 amount
+    );
+
+    error InvalidReceiver(address receiver);
+    error InvalidSender(address sender);
+    error InvalidSpender(address spender);
+    error InsufficientBalance(address sender, uint256 balance, uint256 amount);
+    error InsufficientAllowance(
+        address spender,
+        uint256 allowance,
+        uint256 amount
+    );
+    error InvalidApprover(address approver);
 
     string public name;
 
@@ -39,30 +54,33 @@ contract Challenge02 {
         decimals = _decimals;
     }
 
-    function approve(address owner, address spender, uint256 amount) public {
+    // function approve(address owner, address spender, uint256 amount) public {
+    //     allowance[owner][spender] = amount;
+    //     emit Approval(owner, spender, amount);
+    // }
+
+    function approve(
+        address spender,
+        uint256 amount
+    ) public virtual returns (bool) {
+        address owner = msg.sender;
+        if (owner == address(0)) revert InvalidApprover(address(0));
+        if (spender == address(0)) revert InvalidSpender(address(0));
         allowance[owner][spender] = amount;
         emit Approval(owner, spender, amount);
-    }
-
-    function transfer(address to, uint256 amount) public virtual returns (bool) {
-        balanceOf[msg.sender] -= amount;
-
-        unchecked {
-            balanceOf[to] += amount;
-        }
-
-        emit Transfer(msg.sender, to, amount);
-
         return true;
     }
 
-    function transferFrom(address from, address to, uint256 amount) public virtual returns (bool) {
-        uint256 allowed = allowance[from][msg.sender];
-
-        if (allowed != type(uint256).max) allowance[from][msg.sender] = allowed - amount;
-
+    function transfer(
+        address to,
+        uint256 amount
+    ) public virtual returns (bool) {
+        address from = msg.sender;
+        if (to == address(0)) revert InvalidReceiver(address(0));
+        uint256 senderBal = balanceOf[from];
+        if (senderBal < amount)
+            revert InsufficientBalance(from, senderBal, amount);
         balanceOf[from] -= amount;
-
 
         unchecked {
             balanceOf[to] += amount;
@@ -73,8 +91,40 @@ contract Challenge02 {
         return true;
     }
 
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) public virtual returns (bool) {
+        if (from == address(0)) revert InvalidSender(address(0));
+        if (to == address(0)) revert InvalidReceiver(address(0));
+        uint256 allowed = allowance[from][msg.sender];
+
+        if (allowed != type(uint256).max) {
+            if (allowed < amount)
+                revert InsufficientAllowance(
+                    address(msg.sender),
+                    allowance[from][msg.sender],
+                    amount
+                );
+            allowance[from][msg.sender] = allowed - amount;
+        }
+
+        uint256 fromBal = balanceOf[from];
+        if (fromBal < amount) revert InsufficientBalance(from, fromBal, amount);
+        balanceOf[from] -= amount;
+
+        unchecked {
+            balanceOf[to] += amount;
+        }
+
+        emit Transfer(from, to, amount);
+
+        return true;
+    }
 
     function _mint(address to, uint256 amount) internal virtual {
+        if (to == address(0)) revert InvalidReceiver(address(0));
         totalSupply += amount;
 
         unchecked {
@@ -85,6 +135,8 @@ contract Challenge02 {
     }
 
     function _burn(address from, uint256 amount) internal virtual {
+        if (balanceOf[from] < amount)
+            revert InsufficientBalance(from, balanceOf[from], amount);
         balanceOf[from] -= amount;
 
         unchecked {
@@ -92,5 +144,15 @@ contract Challenge02 {
         }
 
         emit Transfer(from, address(0), amount);
+    }
+
+    function mint(address to, uint256 amount) public virtual returns (bool) {
+        _mint(to, amount);
+        return true;
+    }
+
+    function burn(uint256 amount) public virtual returns (bool) {
+        _burn(msg.sender, amount);
+        return true;
     }
 }
