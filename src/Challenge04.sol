@@ -135,7 +135,7 @@ contract Challenge04 {
             "Challenge4: token owner zero address"
         );
 
-        require(spender != address(0), "Challenge4: token owner zero address");
+        require(spender != address(0), "Challenge4: spender zero address");
 
         uint256 currentAllowance = allowance(tokenOwner, spender);
         if (currentAllowance != type(uint256).max) {

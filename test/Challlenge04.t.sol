@@ -31,16 +31,15 @@ contract ERC20Test is Test {
 
     function test_ERC20_transfer_revert_paused() public {
         vm.prank(address(1));
-        vm.expectRevert("Challenge4: transfers paused");
         erc20.pause();
-        erc20.transfer(address(1234), 0);
+        vm.prank(address(1));
+        vm.expectRevert("Challenge4: transfers paused");
+        erc20.transfer(address(1234), 1e18);
     }
 
     function test_ERC20_transfer_reverts_sender_address_0() public {
         vm.prank(address(0));
-        vm.expectRevert("Invalid sender");
-
-        vm.deal(address(0), 10e18);
+        vm.expectRevert("Challenge4: transfer from zero address");
         erc20.transfer(address(1234), 10e18);
     }
 
@@ -86,7 +85,7 @@ contract ERC20Test is Test {
         vm.prank(address(1));
         erc20.approve(address(1234), 2e18);
         vm.prank(address(1234));
-        vm.expectRevert("Invalid tokenOwner");
+        vm.expectRevert("Challenge4: token owner zero address");
         erc20.transferFrom(address(0), address(12345), 2e18);
     }
 
@@ -94,7 +93,7 @@ contract ERC20Test is Test {
         vm.prank(address(123));
         erc20.approve(address(1234), 2e18);
         vm.prank(address(0));
-        vm.expectRevert();
+        vm.expectRevert("Challenge4: spender zero address");
         erc20.transferFrom(address(123), address(1), 2e18);
     }
 

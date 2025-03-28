@@ -105,6 +105,7 @@ contract Challenge03 {
     }
 
     function _transfer(address from, address to, uint256 value) internal {
+        require(from != address(0), "Invalid sender");
         require(to != address(0), "Invalid receiver");
         uint256 fromBalance = _balances[from];
         require(fromBalance >= value, "Insufficient balance");
